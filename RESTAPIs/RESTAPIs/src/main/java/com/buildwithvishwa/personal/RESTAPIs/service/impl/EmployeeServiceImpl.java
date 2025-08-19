@@ -1,10 +1,13 @@
 package com.buildwithvishwa.personal.RESTAPIs.service.impl;
 
 import com.buildwithvishwa.personal.RESTAPIs.dto.EmployeeDto;
+import com.buildwithvishwa.personal.RESTAPIs.dto.NewEmployeeDto;
 import com.buildwithvishwa.personal.RESTAPIs.entity.Employee;
 import com.buildwithvishwa.personal.RESTAPIs.repository.EmployeeRepo;
 import com.buildwithvishwa.personal.RESTAPIs.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 
@@ -15,6 +18,7 @@ import java.util.List;
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepo employeeRepo;
+    private final ModelMapper modelMapper;
 
     @Override
     public List<EmployeeDto> getAllEmployee() {
@@ -25,6 +29,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public EmployeeDto getEmployeeById(Long id) {
         Employee employee = employeeRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("Student not found with ID: "+id));
-        return new EmployeeDto(employee.getId(),employee.getName(),employee.getEmail());
+        return modelMapper.map(employee,EmployeeDto.class);
+    }
+    @Override
+    public EmployeeDto createNewEmployee(NewEmployeeDto newEmployeeDto) {
+        Employee newEmployee = modelMapper.map(newEmployeeDto,Employee.class);
+        Employee employee = employeeRepo.save(newEmployee);
+        return modelMapper.map(employee,EmployeeDto.class);
     }
 }
