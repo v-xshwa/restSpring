@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.ObjectError;
+
+import java.util.Map;
 import java.util.Optional;
 
 import java.util.List;
@@ -36,5 +39,41 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee newEmployee = modelMapper.map(newEmployeeDto,Employee.class);
         Employee employee = employeeRepo.save(newEmployee);
         return modelMapper.map(employee,EmployeeDto.class);
+    }
+
+    @Override
+    public void deleteStudentById(Long id) {
+        if(!employeeRepo.existsById(id)){
+            throw new IllegalArgumentException("No Employee with this Id "+id);
+        }
+        employeeRepo.deleteById(id);
+    }
+
+    @Override
+    public EmployeeDto updateEmployeeById(Long id, NewEmployeeDto newEmployeeDto) {
+        Employee employee = employeeRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("No Employee with the given id"));
+        modelMapper.map(newEmployeeDto,employee);
+        employeeRepo.save(employee);
+        return modelMapper.map(employee,EmployeeDto.class);
+    }
+
+    @Override
+    public EmployeeDto updateEmployeePartial(Long id, Map<String, Object> data) {
+        Employee employee = employeeRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("No Employee with the given id"));
+
+        data.forEach((key,value) ->{
+            switch (key){
+                case "name" :
+                    employee.setName((String) value);
+                    break;
+                case "email":
+                    employee.setEmail((String) value);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid Key");
+            }
+        });
+        Employee newEmployee = employeeRepo.save(employee);
+        return modelMapper.map(newEmployee,EmployeeDto.class);
     }
 }
